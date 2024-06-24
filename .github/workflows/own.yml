@@ -1,0 +1,5 @@
+- name: Check config file changes
+  uses: KinjiKawaguchi/config-change-notifier-action@v1
+  with:
+    config_files: |
+      .env.example
