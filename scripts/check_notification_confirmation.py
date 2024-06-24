@@ -24,9 +24,9 @@ def check_notification_confirmation():
 
 def main():
     if check_notification_confirmation():
-        print("通知確認コマンドが実行されました。")
+        print("Notification confirmation command has been executed.")
     else:
-        print("通知確認コマンドが実行されていません。PRにコメントで `/config-change-notified` と入力してください。")
+        print("Notification confirmation command has not been executed. Please comment '/config-change-notified' on the PR.")
         sys.exit(1)
 
 if __name__ == "__main__":
