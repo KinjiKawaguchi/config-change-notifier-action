@@ -1,5 +1,18 @@
-- name: Check config file changes
-  uses: KinjiKawaguchi/config-change-notifier-action@v1
-  with:
-    config_files: |
-      .env.example
+name: Config Change Notifier
+
+on:
+  push:
+    branches: [ main, test ]
+  pull_request:
+    branches: [ main, test  ]
+
+jobs:
+  check_config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check config file changes
+        uses: KinjiKawaguchi/config-change-notifier-action@v1
+        with:
+          config_files: |
+            .env.example
