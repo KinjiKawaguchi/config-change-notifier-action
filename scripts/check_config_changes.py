@@ -34,21 +34,21 @@ def main():
     changed_files = [file for file in config_files if check_file_changes(file)]
 
     if changed_files:
-        print("以下のコンフィグファイルが変更されています:")
+        print("The following config files have been changed:")
         for file in changed_files:
             print(f"- {file}")
         
         comment = (
-            "以下のコンフィグファイルの変更が検出されました：\n" +
+            "Changes detected in the following config files:\n" +
             "\n".join(f"- {file}" for file in changed_files) + "\n\n" +
-            "これらの変更がチーム内で共有されていることを確認してください。\n"
-            "確認後、このPRにコメントで `/config-change-notified` と入力してください。"
+            "Please ensure these changes have been shared with the team.\n"
+            "After confirming, please comment `/config-change-notified` on this PR."
         )
         add_pr_comment(comment)
         
         sys.exit(1)
     else:
-        print("コンフィグファイルに変更はありません。")
+        print("No changes detected in config files.")
 
 if __name__ == "__main__":
     main()
