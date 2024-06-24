@@ -1,8 +1,6 @@
 name: Config Change Notifier
 
 on:
-  push:
-    branches: [ main, test ]
   pull_request:
     branches: [ main, test  ]
 
@@ -12,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Check config file changes
-        uses: KinjiKawaguchi/config-change-notifier-action@v1
+        uses: KinjiKawaguchi/config-change-notifier-action@v2
         with:
           config_files: |
             .env.example
