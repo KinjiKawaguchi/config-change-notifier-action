@@ -1,0 +1,35 @@
+name: 'Config Change Notifier'
+description: 'Detects changes in config files and notifies team members'
+inputs:
+  config_files:
+    description: 'List of config files to monitor'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: pip install PyYAML requests
+      shell: bash
+
+    - name: Check config changes
+      run: python ${{ github.action_path }}/scripts/check_config_changes.py
+      env:
+        CONFIG_FILES: ${{ inputs.config_files }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        GITHUB_TOKEN: ${{ github.token }}
+      shell: bash
+
+    - name: Check for notification confirmation
+      run: python ${{ github.action_path }}/scripts/check_notification_confirmation.py
+      env:
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        GITHUB_TOKEN: ${{ github.token }}
+      shell: bash
