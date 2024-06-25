@@ -1,3 +1,4 @@
+name: Comment Test
 on: issue_comment
 
 jobs:
