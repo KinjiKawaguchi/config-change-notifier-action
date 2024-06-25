@@ -4,6 +4,9 @@ on:
     branches: [ main, test ]
   push:
     branches: [ main, test ]
+  issue_comment:
+    types:
+      - created
 
 jobs:
   check_config:
