@@ -13,9 +13,9 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Check config file changes
-        uses: KinjiKawaguchi/config-change-notifier-action@v2
+        uses: KinjiKawaguchi/config-change-notifier-action@v1
         with:
           config_files: |
             .env.example
