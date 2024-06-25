@@ -1,8 +1,7 @@
 name: Config Change Notifier
-
 on:
   pull_request:
-    branches: [ main, test  ]
+    branches: [ main, test ]
   push:
     branches: [ main, test ]
 
@@ -12,10 +11,16 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+      issues: write  # これを追加
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3  # v3 に更新
+        with:
+          fetch-depth: 0  # 全履歴をフェッチ
+
       - name: Check config file changes
         uses: KinjiKawaguchi/config-change-notifier-action@v1
         with:
           config_files: |
             .env.example
+        env:
+          GITHUB_TOKEN: ${{ secrets.CNN_GITHUB_TOKEN }}  # トークンを明示的に指定
