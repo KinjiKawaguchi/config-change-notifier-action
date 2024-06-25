@@ -1,5 +1,7 @@
 name: Comment Test
 on:
+  pull_request:
+    branches: [main, test]
   issue_comment:
     types: [created]
 
