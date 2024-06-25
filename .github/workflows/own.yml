@@ -2,6 +2,8 @@ name: Config Change Notifier
 on:
   pull_request:
     branches: [ main, test ]  # 必要に応じて
+  push:
+    branches: [ main, test ]
   issue_comment:
     types:
       - created
