@@ -1,13 +1,15 @@
 name: Comment Test
-on: issue_comment
+on:
+  issue_comment:
+    types: [created]
 
 jobs:
   pr_commented:
     name: PR comment
-    if: ${{ github.event.issue.pull_request }}
+    if: ${{ github.event.issue.pull_request != null }}
     runs-on: ubuntu-latest
     steps:
       - run: |
           echo A comment on PR "$NUMBER"
-        env:
+          env:
           NUMBER: ${{ github.event.issue.number }}
