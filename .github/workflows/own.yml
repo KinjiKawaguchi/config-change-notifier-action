@@ -1,9 +1,7 @@
 name: Config Change Notifier
 on:
   pull_request:
-    branches: [ main, test ]
-  push:
-    branches: [ main, test ]
+    branches: [ main, test ]  # 必要に応じて
   issue_comment:
     types:
       - created
@@ -14,16 +12,27 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-      issues: write  # これを追加
+      issues: write
     steps:
-      - uses: actions/checkout@v3  # v3 に更新
+      - uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # 全履歴をフェッチ
-
+          fetch-depth: 0
       - name: Check config file changes
-        uses: KinjiKawaguchi/config-change-notifier-action@v1
+        uses: KinjiKawaguchi/config-change-notifier-action@v1  # または @main for testing
         with:
           config_files: |
             .env.example
         env:
-          GITHUB_TOKEN: ${{ secrets.CNN_GITHUB_TOKEN }}  # トークンを明示的に指定
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 通常のGitHub提供トークンを使用
+
+  process_comment:
+    if: github.event.issue.pull_request && github.event.comment.body == '/config-change-notified'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Process notification confirmation
+    uses: KinjiKawaguchi/config-change-notifier-action@v1  # または @main for testing
+    with:
+      config_files: |
+        .env.example
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 通常のGitHub提供トークンを使用
