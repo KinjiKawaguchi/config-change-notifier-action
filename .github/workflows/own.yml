@@ -3,12 +3,17 @@ name: Config Change Notifier
 on:
   pull_request:
     branches: [ main, test  ]
+  push:
+    branches: [ main, test ]
 
 jobs:
   check_config:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v1
       - name: Check config file changes
         uses: KinjiKawaguchi/config-change-notifier-action@v2
         with:
