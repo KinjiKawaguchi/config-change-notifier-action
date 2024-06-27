@@ -1,13 +1,12 @@
 # Config Change Notifier Action
 
 This GitHub Action detects changes in specified config files and ensures team notification.
-
 設定ファイルの変更を検出し、チームへの通知を確実にするGitHub Actionです。
 
 ## Usage / 使用方法
 
 ```yaml
-- uses: KinjiKawaguchi/config-change-notifier-action@v1
+- uses: KinjiKawaguchi/config-change-notifier-action@v1.2
   with:
     config_files: |
       config/database.yml
@@ -36,17 +35,20 @@ This GitHub Action detects changes in specified config files and ensures team no
 1. The action checks for changes in the specified config files.
 2. If changes are detected, it adds a comment to the PR with the list of changed files.
 3. It requests confirmation that the changes have been shared with the team.
-4. The PR can only be merged after the confirmation command is commented.
+4. The action waits indefinitely for the confirmation command to be commented.
+5. Once the exact confirmation command is received, the action completes successfully.
+
+---
 
 1. 指定された設定ファイルの変更をチェックします。
 2. 変更が検出された場合、変更されたファイルのリストとともにPRにコメントを追加します。
 3. 変更がチームと共有されたことの確認を要求します。
-4. 確認コマンドがコメントされた後でのみ、PRをマージできます。
+4. アクションは確認コマンドがコメントされるまで無期限に待機します。
+5. 正確な確認コマンドが受信されると、アクションは正常に完了します。
 
 ## Confirmation Command / 確認コマンド
 
 After sharing the config changes with the team, comment the following on the PR:
-
 設定変更をチームと共有した後、PRに以下のようにコメントしてください：
 
 ```
@@ -54,8 +56,10 @@ After sharing the config changes with the team, comment the following on the PR:
 ```
 
 This command confirms that the team has been notified of the config changes.
-
 このコマンドは、設定変更についてチームに通知されたことを確認します。
+
+**Note**: The confirmation command must be exactly as shown above. Comments containing this command as part of a larger message will not be accepted.
+**注意**: 確認コマンドは上記のとおり正確に入力する必要があります。このコマンドを含む大きなメッセージは受け付けられません。
 
 ## License / ライセンス
 

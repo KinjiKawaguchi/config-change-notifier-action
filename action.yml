@@ -13,14 +13,20 @@ runs:
   steps:
     - name: Checkout code
       uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
+
     - name: Install dependencies
       run: pip install PyYAML requests
       shell: bash
+
     - name: Check config changes
+      id: check_changes
       run: python ${{ github.action_path }}/scripts/check_config_changes.py
       env:
         CONFIG_FILES: ${{ inputs.config_files }}
@@ -28,7 +34,9 @@ runs:
         GITHUB_TOKEN: ${{ github.token }}
         LANGUAGE: ${{ inputs.language }}
       shell: bash
-    - name: Check for notification confirmation
+
+    - name: Wait for notification confirmation
+      if: steps.check_changes.outputs.changes_detected == 'true'
       run: python ${{ github.action_path }}/scripts/check_notification_confirmation.py
       env:
         PR_NUMBER: ${{ github.event.pull_request.number }}
