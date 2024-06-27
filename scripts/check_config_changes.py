@@ -45,12 +45,12 @@ def get_localized_messages() -> Dict[str, str]:
         }
     }
     return messages.get(language, messages['en'])
-
+    
 def main():
     config_files = get_config_files()
     changed_files = [file for file in config_files if check_file_changes(file)]
     messages = get_localized_messages()
-
+    
     if changed_files:
         print(messages['changes_detected'])
         for file in changed_files:
@@ -64,9 +64,10 @@ def main():
         )
         add_pr_comment(comment)
         
-        sys.exit(1)
+        print("::set-output name=changes_detected::true")
     else:
         print(messages['no_changes'])
+        print("::set-output name=changes_detected::false")
 
 if __name__ == "__main__":
     main()
