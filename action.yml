@@ -4,32 +4,34 @@ inputs:
   config_files:
     description: 'List of config files to monitor'
     required: true
+  language:
+    description: 'Notification language (en or ja)'
+    required: false
+    default: 'en'
 runs:
   using: 'composite'
   steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
-
     - name: Install dependencies
       run: pip install PyYAML requests
       shell: bash
-
     - name: Check config changes
       run: python ${{ github.action_path }}/scripts/check_config_changes.py
       env:
         CONFIG_FILES: ${{ inputs.config_files }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
         GITHUB_TOKEN: ${{ github.token }}
+        LANGUAGE: ${{ inputs.language }}
       shell: bash
-
     - name: Check for notification confirmation
       run: python ${{ github.action_path }}/scripts/check_notification_confirmation.py
       env:
         PR_NUMBER: ${{ github.event.pull_request.number }}
         GITHUB_TOKEN: ${{ github.token }}
+        LANGUAGE: ${{ inputs.language }}
       shell: bash
