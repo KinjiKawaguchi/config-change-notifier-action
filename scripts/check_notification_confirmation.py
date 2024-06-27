@@ -18,6 +18,7 @@ def get_localized_messages():
         }
     }
     return messages.get(language, messages['en'])
+    
 def check_notification_confirmation():
     pr_number = os.environ.get('PR_NUMBER')
     token = os.environ.get('GITHUB_TOKEN')
@@ -38,7 +39,7 @@ def check_notification_confirmation():
         return False
     
     comments = response.json()
-    return any("/config-change-notified" in comment['body'] for comment in comments)
+    return any(comment['body'].strip() == "/config-change-notified" for comment in comments)
 
 def wait_for_notification_confirmation():
     messages = get_localized_messages()
