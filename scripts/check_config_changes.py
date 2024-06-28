@@ -11,15 +11,28 @@ def get_config_files() -> List[str]:
 
 
 def check_file_changes(file_path: str) -> Dict[int, str]:
+    print(f"Checking changes for file: {file_path}")
     diff_output = os.popen(f'git diff origin/main..HEAD -- {file_path}').read()
+    print(f"Raw diff output:\n{diff_output}")
+
     changes = {}
     current_line = 0
     for line in diff_output.split('\n'):
+        print(f"Processing line: {line}")
         if line.startswith('@@'):
-            current_line = int(line.split('+')[1].split(',')[0])
+            print("Found @@ line (chunk header)")
+            line_info = line.split()[2]
+            print(f"Line info: {line_info}")
+            current_line = int(line_info.split(',')[0].lstrip('+')) - 1
+            print(f"Updated current_line to: {current_line}")
         elif line.startswith('+'):
-            changes[current_line] = line[1:]
             current_line += 1
+            changes[current_line] = line[1:]
+            print(f"Added change at line {current_line}: {line[1:]}")
+        else:
+            print("Skipping line (not a change)")
+
+    print(f"Final changes dict: {changes}")
     return changes
 
 
