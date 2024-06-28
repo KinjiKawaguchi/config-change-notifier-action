@@ -20,7 +20,7 @@ runs:
       with:
         python-version: "3.x"
     - name: Install dependencies
-      run: pip install requests
+      run: pip install requests PyYAML
       shell: bash
     - name: Check config changes and add reviews
       id: check_changes
