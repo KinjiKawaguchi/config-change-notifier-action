@@ -17,20 +17,23 @@ def check_file_changes(file_path: str) -> Dict[int, str]:
 
     changes = {}
     current_line = 0
+    in_header = True
     for line in diff_output.split('\n'):
         print(f"Processing line: {line}")
         if line.startswith('@@'):
             print("Found @@ line (chunk header)")
+            in_header = False
             line_info = line.split()[2]
             print(f"Line info: {line_info}")
-            current_line = int(line_info.split(',')[0].lstrip('+')) - 1
+            current_line = int(line_info.split(',')[0].lstrip('+'))
             print(f"Updated current_line to: {current_line}")
-        elif line.startswith('+'):
+        elif not in_header and line.startswith('+'):
+            if not line.startswith('+++'):
+                changes[current_line] = line[1:]
+                print(f"Added change at line {current_line}: {line[1:]}")
             current_line += 1
-            changes[current_line] = line[1:]
-            print(f"Added change at line {current_line}: {line[1:]}")
-        else:
-            print("Skipping line (not a change)")
+        elif not line.startswith('-'):
+            current_line += 1
 
     print(f"Final changes dict: {changes}")
     return changes
