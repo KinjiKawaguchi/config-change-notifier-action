@@ -1,8 +1,7 @@
 import os
-import yaml
-import sys
 import requests
 from typing import List, Dict
+from slack_sdk.webhook import WebhookClient
 
 
 def get_config_files() -> List[str]:
@@ -82,27 +81,49 @@ def get_localized_messages() -> Dict[str, str]:
     }
     return messages.get(language, messages['en'])
 
+def send_slack_notification(message: str):
+    webhook_url = os.environ.get('SLACK_WEBHOOK')
+    if not webhook_url:
+        print("Slack webhook URL is not set.")
+        return
+    
+    webhook = WebhookClient(webhook_url)
+    response = webhook.send(text=message)
+    
+    if response.status_code != 200:
+        print(f"Failed to send Slack notification: {response.body}")
+
+def notify_changes(file_path: str, changes: Dict[int, str], messages: Dict[str, str]):
+    notification_method = os.environ.get('NOTIFICATION_METHOD', 'pr_comment')
+    
+    if notification_method in ['pr_comment', 'both']:
+        for line, content in changes.items():
+            comment = f"{messages['review_required']}\nChanged content: {content}"
+            add_pr_review(file_path, line, comment)
+    
+    if notification_method in ['slack', 'both']:
+        slack_message = f"{messages['changes_detected']} {file_path}\n"
+        for line, content in changes.items():
+            slack_message += f"Line {line}: {content}\n"
+        send_slack_notification(slack_message)
 
 def main():
     config_files = get_config_files()
     messages = get_localized_messages()
     changes_detected = False
-
+    
     for file in config_files:
         changes = check_file_changes(file)
         if changes:
             changes_detected = True
             print(f"{messages['changes_detected']} {file}")
-            for line, content in changes.items():
-                comment = f"{messages['review_required']}\nChanged content: {content}"
-                add_pr_review(file, line, comment)
-
+            notify_changes(file, changes, messages)
+    
     if changes_detected:
         print("::set-output name=changes_detected::true")
     else:
         print(messages['no_changes'])
         print("::set-output name=changes_detected::false")
-
 
 if __name__ == "__main__":
     main()
