@@ -1,44 +1,32 @@
-name: 'Config Change Notifier'
-description: 'Detects changes in config files and notifies team members'
+name: "Config Change Notifier"
+description: "Detects changes in config files and adds ChangeRequired reviews"
 inputs:
   config_files:
-    description: 'List of config files to monitor'
+    description: "List of config files to monitor"
     required: true
   language:
-    description: 'Notification language (en or ja)'
+    description: "Notification language (en or ja)"
     required: false
-    default: 'en'
+    default: "en"
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Checkout code
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
-
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.x'
-
+        python-version: "3.x"
     - name: Install dependencies
-      run: pip install PyYAML requests
+      run: pip install requests PyYAML
       shell: bash
-
-    - name: Check config changes
+    - name: Check config changes and add reviews
       id: check_changes
       run: python ${{ github.action_path }}/scripts/check_config_changes.py
       env:
         CONFIG_FILES: ${{ inputs.config_files }}
-        PR_NUMBER: ${{ github.event.pull_request.number }}
-        GITHUB_TOKEN: ${{ github.token }}
-        LANGUAGE: ${{ inputs.language }}
-      shell: bash
-
-    - name: Wait for notification confirmation
-      if: steps.check_changes.outputs.changes_detected == 'true'
-      run: python ${{ github.action_path }}/scripts/check_notification_confirmation.py
-      env:
         PR_NUMBER: ${{ github.event.pull_request.number }}
         GITHUB_TOKEN: ${{ github.token }}
         LANGUAGE: ${{ inputs.language }}
