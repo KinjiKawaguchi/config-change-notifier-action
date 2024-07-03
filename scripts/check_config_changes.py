@@ -2,8 +2,8 @@ import os
 import requests
 from typing import List, Dict
 from slack_sdk.webhook import WebhookClient
-
-
+from slack_sdk.models.blocks import HeaderBlock, SectionBlock, DividerBlock, ActionsBlock
+from slack_sdk.models.blocks.block_elements import ButtonElement
 def get_config_files() -> List[str]:
     config_files_str = os.environ.get('CONFIG_FILES', '')
     return [file.strip() for file in config_files_str.split('\n') if file.strip()]
@@ -81,14 +81,35 @@ def get_localized_messages() -> Dict[str, str]:
     }
     return messages.get(language, messages['en'])
 
-def send_slack_notification(message: str):
+
+
+def send_slack_notification(file_path: str, changes: Dict[int, str], messages: Dict[str, str]):
     webhook_url = os.environ.get('SLACK_WEBHOOK')
     if not webhook_url:
         print("Slack webhook URL is not set.")
         return
     
     webhook = WebhookClient(webhook_url)
-    response = webhook.send(text=message)
+    
+    blocks = [
+        HeaderBlock(text="設定ファイルの変更が検出されました"),
+        SectionBlock(text=f"*ファイル:* `{file_path}`"),
+        DividerBlock()
+    ]
+    
+    for line, content in changes.items():
+        blocks.append(SectionBlock(text=f"*行 {line}:*\n```{content}```"))
+    
+    blocks.append(ActionsBlock(
+        elements=[
+            ButtonElement(
+                text="PRを確認",
+                url=f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/pull/{os.environ.get('PR_NUMBER')}"
+            )
+        ]
+    ))
+    
+    response = webhook.send(blocks=blocks)
     
     if response.status_code != 200:
         print(f"Failed to send Slack notification: {response.body}")
@@ -102,10 +123,7 @@ def notify_changes(file_path: str, changes: Dict[int, str], messages: Dict[str, 
             add_pr_review(file_path, line, comment)
     
     if notification_method in ['slack', 'both']:
-        slack_message = f"{messages['changes_detected']} {file_path}\n"
-        for line, content in changes.items():
-            slack_message += f"Line {line}: {content}\n"
-        send_slack_notification(slack_message)
+        send_slack_notification(file_path, changes, messages)
 
 def main():
     config_files = get_config_files()
