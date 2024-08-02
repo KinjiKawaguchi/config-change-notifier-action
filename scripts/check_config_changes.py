@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 
 def get_config_files() -> List[str]:
     config_files_str = os.environ.get('CONFIG_FILES', '')
-    return [file.strip() for file in config_files_str.split('\n') if file.strip()]
+    config_files = [file.strip() for file in config_files_str.split('\n') if file.strip()]
+    logger.info(f"Retrieved config files: {config_files}")
+    return config_files
 
 def check_file_changes(file_path: str) -> Dict[int, str]:
     """
@@ -73,6 +75,7 @@ def add_pr_review(file_path: str, line: int, comment: str):
     if not pr_number or not token:
         logger.warning("PR number or GitHub token is not set.")
         return
+    logger.info(f"Adding PR review for file: {file_path}, line: {line}")
     url = f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/pulls/{pr_number}/reviews"
     headers = {
         "Authorization": f"token {token}",
@@ -90,11 +93,14 @@ def add_pr_review(file_path: str, line: int, comment: str):
         ]
     }
     response = requests.post(url, json=data, headers=headers)
-    if response.status_code != 200:
+    if response.status_code == 200:
+        logger.info("Successfully added PR review")
+    else:
         logger.error(f"Failed to add PR review: {response.text}")
 
 def get_localized_messages() -> Dict[str, str]:
     language = os.environ.get('LANGUAGE', 'en')
+    logger.info(f"Using language: {language}")
     messages = {
         'en': {
             'changes_detected': "Changes detected in the following config file:",
@@ -116,6 +122,7 @@ def send_slack_notification(file_path: str, changes: Dict[int, str], messages: D
     if not webhook_url:
         logger.warning("Slack webhook URL is not set.")
         return
+    logger.info(f"Sending Slack notification for file: {file_path}")
     
     webhook = WebhookClient(webhook_url)
     
@@ -139,11 +146,14 @@ def send_slack_notification(file_path: str, changes: Dict[int, str], messages: D
     
     response = webhook.send(blocks=blocks)
     
-    if response.status_code != 200:
+    if response.status_code == 200:
+        logger.info("Successfully sent Slack notification")
+    else:
         logger.error(f"Failed to send Slack notification: {response.body}")
 
 def notify_changes(file_path: str, changes: Dict[int, str], messages: Dict[str, str]):
     notification_method = os.environ.get('NOTIFICATION_METHOD', 'pr_comment')
+    logger.info(f"Using notification method: {notification_method}")
     
     if notification_method in ['pr_comment', 'both']:
         for line, content in changes.items():
@@ -154,22 +164,28 @@ def notify_changes(file_path: str, changes: Dict[int, str], messages: Dict[str, 
         send_slack_notification(file_path, changes, messages)
 
 def main():
+    logger.info("Starting main function")
     config_files = get_config_files()
     messages = get_localized_messages()
     changes_detected = False
     
     for file in config_files:
+        logger.info(f"Checking file: {file}")
         changes = check_file_changes(file)
         if changes:
             changes_detected = True
             logger.info(f"{messages['changes_detected']} {file}")
+            logger.info(f"Changes: {changes}")
             notify_changes(file, changes, messages)
     
     if changes_detected:
+        logger.info("Changes detected in at least one file")
         logger.info("::set-output name=changes_detected::true")
     else:
         logger.info(messages['no_changes'])
         logger.info("::set-output name=changes_detected::false")
+    
+    logger.info("Finished main function")
 
 if __name__ == "__main__":
     main()
