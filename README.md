@@ -7,7 +7,7 @@ This GitHub Action detects changes in specified config files and ensures team no
 ## Usage / 使用方法
 
 ```yaml
-- uses: YourGitHubUsername/config-change-notifier-action@v1.0
+- uses: KinjiKawaguchi/config-change-notifier-action@v1.0
   with:
     config_files: |
       config/database.yml
