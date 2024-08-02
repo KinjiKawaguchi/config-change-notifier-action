@@ -1,5 +1,5 @@
 name: "Config Change Notifier"
-description: "Detects changes in config files and adds ChangeRequired reviews"
+description: "Detects changes in config files and notifies via PR comment and/or Slack"
 inputs:
   config_files:
     description: "List of config files to monitor"
@@ -8,6 +8,13 @@ inputs:
     description: "Notification language (en or ja)"
     required: false
     default: "en"
+  notification_method:
+    description: "Notification method (pr_comment, slack, or both)"
+    required: false
+    default: "pr_comment"
+  slack_webhook:
+    description: "Slack webhook URL for notifications"
+    required: false
 runs:
   using: "composite"
   steps:
@@ -20,9 +27,11 @@ runs:
       with:
         python-version: "3.x"
     - name: Install dependencies
-      run: pip install requests PyYAML
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r ${{ github.action_path }}/requirements.txt
       shell: bash
-    - name: Check config changes and add reviews
+    - name: Check config changes and notify
       id: check_changes
       run: python ${{ github.action_path }}/scripts/check_config_changes.py
       env:
@@ -30,4 +39,6 @@ runs:
         PR_NUMBER: ${{ github.event.pull_request.number }}
         GITHUB_TOKEN: ${{ github.token }}
         LANGUAGE: ${{ inputs.language }}
+        NOTIFICATION_METHOD: ${{ inputs.notification_method }}
+        SLACK_WEBHOOK: ${{ inputs.slack_webhook }}
       shell: bash
