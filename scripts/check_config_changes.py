@@ -10,6 +10,8 @@ from slack_sdk.models.blocks.block_elements import ButtonElement
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+
+
 def get_config_files() -> List[str]:
     config_files_str = os.environ.get('CONFIG_FILES', '')
     config_files = [file.strip() for file in config_files_str.split('\n') if file.strip()]
@@ -151,17 +153,26 @@ def send_slack_notification(file_path: str, changes: Dict[int, str], messages: D
     else:
         logger.error(f"Failed to send Slack notification: {response.body}")
 
+NOTIFICATION_METHODS = {
+    'pr_comment': add_pr_review,
+    'slack': send_slack_notification,
+}
+
 def notify_changes(file_path: str, changes: Dict[int, str], messages: Dict[str, str]):
-    notification_method = os.environ.get('NOTIFICATION_METHOD', 'pr_comment')
-    logger.info(f"Using notification method: {notification_method}")
+    notification_methods = parse_notification_methods(os.environ.get('NOTIFICATION_METHOD', 'pr_comment'))
+    logger.info(f"Using notification methods: {', '.join(notification_methods)}")
     
-    if notification_method in ['pr_comment', 'both']:
-        for line, content in changes.items():
-            comment = f"{messages['review_required']}\nChanged content: {content}"
-            add_pr_review(file_path, line, comment)
-    
-    if notification_method in ['slack', 'both']:
-        send_slack_notification(file_path, changes, messages)
+    for method in notification_methods:
+        if method in NOTIFICATION_METHODS:
+            NOTIFICATION_METHODS[method](file_path, changes, messages)
+        else:
+            logger.warning(f"Unknown notification method: {method}")
+
+def parse_notification_methods(notification_method: str) -> List[str]:
+    if notification_method == 'both':
+        logger.warning("The 'both' option is deprecated. Please use 'pr_comment,slack' instead.")
+        return ['pr_comment', 'slack']
+    return [method.strip() for method in notification_method.split(',')]
 
 def main():
     logger.info("Starting main function")
@@ -189,3 +200,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
